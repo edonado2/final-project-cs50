@@ -1,0 +1,267 @@
+{% extends "layout.html" %}
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %} Home {% endblock %}</title>
+</head>
+
+
+{% block content %}
+
+<div class="container about">
+    <h1>Welcome to MovieMatch</h1>
+</div>
+
+<div class="container search-bar">
+    <form id="search-form" onsubmit="return false">
+        <div class="container main-search">
+            <input type="text" id="search-bar" placeholder="Search for a movie..." class="form-control movie-search"
+                autocomplete="off" />
+        </div>
+    </form>
+</div>
+
+<!-- Show Movies by Gender  -->
+
+<section>
+    <div class="container genres">
+        {% for genre in genres %}
+        <div class="card-group">
+            <div class="card genre" data-genre-id="{{ genre.get('id') }}">
+                <div class="card-body genre-item">
+                    <span>{{ genre.get("name") }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+
+<section>
+    <h1 class="popular-heading">Popular Movies</h1>
+    <div class="container popular" id="movie-grid">
+        {% for item in popular %}
+        <div class="card-group">
+            <a href="/movies/{{ item.id }}">
+                <div class="card poster" style="width: 18rem;">
+                    <img src="https://image.tmdb.org/t/p/w500/{{ item.poster_path }}" class="card-img-top"
+                        alt="movie-poster">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ item.get("original_title") }}</h5>
+                        <span>{{ item.get("title") }} ({{ item.get("release_date").split('-')[0] }})</span><br />
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">{{ item.get("vote_average")|float|round(2) }} <i class="fa fa-star"
+                                aria-hidden="true"></i></li>
+                    </ul>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+
+<script>
+    document.getElementById('search-bar').addEventListener('input', async function (event) {
+        var query = event.target.value.trim();
+        if (query !== '') {
+            await searchMovies(query);
+        } else {
+            clearMovieGrid()
+        }
+    });
+
+    async function searchMovies(query) {
+        try {
+            var apiKey = "50445d8592630acbc5c65378ad3843a7";
+            var response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}&include_adult=false`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            var data = await response.json();
+            displayResults(data.results);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function displayResults(results) {
+        var movieGrid = document.getElementById('movie-grid');
+        movieGrid.innerHTML = '';
+
+        if (results.length > 0) {
+            results.forEach(function (movie) {
+                var cardGroup = document.createElement('div');
+                cardGroup.className = 'card-group';
+
+                var card = document.createElement('div');
+                card.className = 'card poster';
+                card.style.width = '18rem';
+
+                var img = document.createElement('img');
+                img.className = 'card-img-top';
+                img.src = movie.poster_path ? ('https://image.tmdb.org/t/p/w500/' + movie.poster_path) : 'https://via.placeholder.com/300x450?text=No+Poster';
+                img.alt = 'movie-poster';
+
+                var cardBody = document.createElement('div');
+                cardBody.className = 'card-body';
+
+                var title = document.createElement('h5');
+                title.className = 'card-title';
+                title.textContent = movie.original_title;
+
+                var anchor = document.createElement('a');
+                anchor.href = '/movies/' + movie.id;
+                anchor.target = '_blank';
+                anchor.addEventListener('click', function (event) {
+                    event.preventDefault();
+                });
+
+                var releaseYear = document.createElement('span');
+                releaseYear.textContent = movie.title + ' (' + movie.release_date.split('-')[0] + ')';
+
+                cardBody.appendChild(title);
+                cardBody.appendChild(releaseYear);
+                cardBody.appendChild(anchor);
+
+                card.appendChild(img);
+                card.appendChild(cardBody);
+
+                cardGroup.appendChild(card);
+                movieGrid.appendChild(cardGroup);
+            });
+        } else {
+            movieGrid.textContent = 'No results found.';
+        }
+    }
+
+    function clearMovieGrid() {
+        var movieGrid = document.getElementById('movie-grid');
+        movieGrid.innerHTML = `
+            <div class="container popular" id="movie-grid">
+        {% for item in popular %}
+        <div class="card-group">
+            <div class="card poster" style="width: 18rem;">
+                <img src="https://image.tmdb.org/t/p/w500/{{ item.poster_path }}" class="card-img-top"
+                    alt="movie-poster">
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.get("original_title") }}</h5>
+                    <span>{{ item.get("title") }} ({{ item.get("release_date").split('-')[0] }})</span><br />
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">{{ item.get("vote_average")|float|round(2) }} <i class="fa fa-star"
+                            aria-hidden="true"></i></li>
+                    <a href="#" class="btn btn-danger">Overview</a>
+                </ul>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+        `;
+    }
+</script>
+
+<script>
+    // Map of genre names to their corresponding IDs
+    const genreIdMap = {
+        "Action": 28,
+        "Adventure": 12,
+        "Animation": 16,
+        "Comedy": 35,
+        "Crime": 80,
+        "Documentary": 99,
+        "Drama": 18,
+        "Family": 10751,
+        "Fantasy": 14,
+        "History": 36,
+        "Horror": 27,
+        "Music": 10402,
+        "Mystery": 9648,
+        "Romance": 10749,
+        "Science Fiction": 878,
+        "TV Movie": 10770,
+        "Thriller": 53,
+        "War": 10752,
+        "Western": 37
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const genreCards = document.querySelectorAll('.genre');
+        genreCards.forEach(genreCard => {
+            genreCard.addEventListener('click', async () => {
+                const genreId = genreCard.dataset.genreId;
+
+                try {
+                    const apiKey = '50445d8592630acbc5c65378ad3843a7';
+                    const response = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc&with_genres=${genreId}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch movies.');
+                    }
+                    const data = await response.json();
+
+                    const movies = data.results;
+                    displayMovies(movies);
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+    });
+
+    async function displayMovies(movies) {
+        const movieGrid = document.getElementById('movie-grid');
+        movieGrid.innerHTML = '';
+
+        movies.forEach(movie => {
+            const cardGroup = document.createElement('div');
+            cardGroup.className = 'card-group';
+
+            const card = document.createElement('div');
+            card.className = 'card poster';
+            card.style.width = '18rem';
+
+            const img = document.createElement('img');
+            img.className = 'card-img-top';
+            img.src = movie.poster_path ? ('https://image.tmdb.org/t/p/w500/' + movie.poster_path) : 'https://via.placeholder.com/300x450?text=No+Poster';
+            img.alt = 'movie-poster';
+
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+
+            const title = document.createElement('h5');
+            title.className = 'card-title';
+            title.textContent = movie.original_title;
+
+            const releaseYear = document.createElement('span');
+            releaseYear.textContent = movie.title + ' (' + movie.release_date.split('-')[0] + ')';
+
+            cardBody.appendChild(title);
+            cardBody.appendChild(releaseYear);
+
+            card.appendChild(img);
+            card.appendChild(cardBody);
+
+            cardGroup.appendChild(card);
+            movieGrid.appendChild(cardGroup);
+            card.addEventListener('click', () => {
+                const movieId = movie.id;
+                const movieDetailsUrl = `/movies/${movieId}`;
+                window.location.href = movieDetailsUrl;
+            });
+        });
+    }
+
+
+</script>
+
+
+
+
+
+<script src="../static/js/main.js"></script>
+
+{% endblock content %}

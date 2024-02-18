@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+
+
+{% block title %}{{ movie.get("original_title") }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="poster">
+                <img src="https://image.tmdb.org/t/p/w500/{{ movie.poster_path }}" alt="movie-poster">
+            </div>
+        </div>
+        <div class="col-md-8">
+            <h1 class="title">{{ movie.get("original_title") }}</h1>
+            <p class="release-date">Release Date: {{ movie.get("release_date") }}</p>
+            <p class="overview">{{ movie.get("overview") }}</p>
+            <p class="rating">Rating: {{ movie.get("vote_average") }}/10</p>
+            <a href="/" class="btn btn-back">Back to Home</a>
+        </div>
+    </div>
+</div>
+<br><br><br><br>
+
+</html>
+
+
+
+{% endblock content %}
