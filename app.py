@@ -42,4 +42,4 @@ def get_movie(id):
        return render_template("movie-detail.html", movie=movie_details)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
