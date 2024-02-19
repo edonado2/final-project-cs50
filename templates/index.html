@@ -29,18 +29,20 @@
     <div class="container genres">
         {% for genre in genres %}
         <div class="card-group">
-            <div class="card genre" data-genre-id="{{ genre.get('id') }}">
+            <a href="#popular">
+                <div class="card genre" data-genre-id="{{ genre.get('id') }}">
                 <div class="card-body genre-item">
                     <span>{{ genre.get("name") }}</span>
                 </div>
             </div>
+            </a>
         </div>
         {% endfor %}
     </div>
 </section>
 
 
-<section>
+<section id="popular">
     <h1 class="popular-heading">Popular Movies</h1>
     <div class="container popular" id="movie-grid">
         {% for item in popular %}
